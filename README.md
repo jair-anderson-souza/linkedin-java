@@ -37,20 +37,16 @@ cd linkedin-clone
 ### 2. Build Applications
 ```bash
 # Build both services with Gradle
-npm run build
-# OR manually:
 ./build.sh
 
 # OR individual services:
-cd core-service && ./gradlew bootJar
-cd people-graph-service && ./gradlew bootJar
+cd core-service && ./gradlew clean bootJar --no-daemon
+cd people-graph-service && ./gradlew clean bootJar --no-daemon
 ```
 
 ### 3. Start with Docker (Recommended)
 ```bash
 # Start all services (databases + applications)
-npm start
-# OR manually:
 ./start.sh
 ```
 
@@ -66,7 +62,7 @@ If you prefer to run services individually:
 
 ```bash
 # Start only databases
-npm run docker:up
+docker-compose up -d mysql neo4j redis
 
 # Terminal 1 - Core Service
 cd core-service
@@ -121,8 +117,10 @@ Check that all services are running:
 - `POST /api/graph/users/{userId}/work-experience` - Add work experience
 
 #### Sync Operations (Inter-service communication)
-- `POST /api/graph/sync/user` - Sync user to graph database
+- `POST /api/graph/sync/user` - Sync user to graph database (accepts UserSyncRequest DTO)
 - `POST /api/graph/sync/company` - Sync company to graph database
+
+**Note**: The core-service automatically syncs user data to the graph service using RestTemplate when users register or update their profiles.
 
 ## 🛢️ Database Schemas
 
@@ -234,7 +232,7 @@ linkedin-clone/
 ├── docker-compose.yml             # All services orchestration
 ├── start.sh                       # Application startup script
 ├── build.sh                       # Build script
-└── package.json                   # NPM scripts for convenience
+└── postman-collection.json        # Postman API collection for testing
 ```
 
 ### Adding New Features
@@ -247,6 +245,7 @@ linkedin-clone/
 5. Add DTOs for request/response objects
 6. Add dependencies to `build.gradle` if needed
 7. Configure security if needed
+8. Configure RestTemplate beans for inter-service communication if needed
 
 #### Graph Service
 1. Create Neo4j Node/Relationship entities
@@ -265,13 +264,14 @@ linkedin-clone/
 - **Input Validation**: Jakarta Bean Validation (JSR-303)
 - **SQL Injection Prevention**: JPA parameterized queries
 - **Cypher Injection Prevention**: Parameterized Neo4j queries
+- **RestTemplate Configuration**: Timeout configuration for reliable inter-service calls
 
 ## 🏃‍♂️ Running the Application
 
 ### Development Mode
 ```bash
 # Build and start everything
-npm start
+./start.sh
 
 # Individual services
 cd core-service && ./gradlew bootRun
@@ -281,28 +281,31 @@ cd people-graph-service && ./gradlew bootRun
 ### Docker Mode
 ```bash
 # Start with Docker Compose
-npm run docker:up
+docker-compose up -d
 
 # Rebuild and start
-npm run docker:rebuild
+docker-compose up -d --build
 
 # View logs  
-npm run logs
-npm run logs:core
-npm run logs:graph
+docker-compose logs -f
+docker-compose logs -f core-service
+docker-compose logs -f people-graph-service
 ```
 
-### Available Scripts
+### Available Commands
 ```bash
-npm run build          # Build both Java applications with Gradle
-npm start              # Build and start all services
-npm run docker:up      # Start with Docker
-npm run docker:down    # Stop Docker services  
-npm run docker:rebuild # Rebuild and restart
-npm run logs           # View all service logs
-npm run gradle:clean   # Clean all Gradle builds
-npm run gradle:build   # Build all services with Gradle
-npm run gradle:test    # Run tests for all services
+./build.sh             # Build both Java applications with Gradle
+./start.sh             # Build and start all services with Docker
+docker-compose up -d   # Start with Docker Compose
+docker-compose down    # Stop Docker services  
+docker-compose up -d --build  # Rebuild and restart
+docker-compose logs -f # View all service logs
+
+# Individual Gradle commands:
+./gradlew clean        # Clean builds (run in each service directory)
+./gradlew bootJar      # Build executable JAR (run in each service directory)  
+./gradlew bootRun      # Run in development mode (run in each service directory)
+./gradlew test         # Run tests (run in each service directory)
 ```
 
 ## 📊 Key Features Implemented
@@ -312,7 +315,7 @@ npm run gradle:test    # Run tests for all services
 ✅ JWT Authentication with Spring Security  
 ✅ JPA/Hibernate with MySQL  
 ✅ Bean Validation with custom error handling  
-✅ Async inter-service communication  
+✅ RestTemplate-based inter-service communication  
 ✅ Comprehensive logging with Logback  
 ✅ Docker containerization  
 ✅ Health checks with Spring Actuator  
@@ -400,12 +403,11 @@ This project uses **Gradle** as the build system for both Spring Boot services:
 - **Neo4j Constraints**: Unique constraints and indexes for graph traversal
 - **Connection Pooling**: MySQL connection pool configuration
 - **Pagination**: Built-in Spring Data pagination support
-- **Async Processing**: Non-blocking inter-service communication
+- **RestTemplate with Timeouts**: Reliable inter-service communication with configurable timeouts
 - **Gradle Build Cache**: Faster incremental builds
 
 ## 🚧 Future Enhancements
 
-- [ ] Spring WebFlux reactive programming  
 - [ ] Redis caching integration
 - [ ] WebSocket real-time messaging
 - [ ] Spring Batch for data processing
