@@ -1,0 +1,748 @@
+{
+	"info": {
+		"name": "LinkedIn Clone API",
+		"description": "Complete API collection for LinkedIn Clone with Core Service (MySQL) and People Graph Service (Neo4j)",
+		"version": "1.0.0",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{auth_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "core_service_url",
+			"value": "http://localhost:8080/api",
+			"type": "string"
+		},
+		{
+			"key": "graph_service_url",
+			"value": "http://localhost:8081/api",
+			"type": "string"
+		},
+		{
+			"key": "auth_token",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Core Service",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{core_service_url}}/health",
+							"host": [
+								"{{core_service_url}}"
+							],
+							"path": [
+								"health"
+							]
+						}
+					}
+				},
+				{
+					"name": "Authentication",
+					"item": [
+						{
+							"name": "Register User",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.response.code === 201) {",
+											"    const response = pm.response.json();",
+											"    pm.collectionVariables.set('auth_token', response.data.token);",
+											"    pm.collectionVariables.set('user_id', response.data.user.id);",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"password123\",\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\",\n  \"headline\": \"Software Engineer at TechCorp\",\n  \"summary\": \"Experienced software engineer with 5+ years in full-stack development.\",\n  \"location\": \"San Francisco, CA\",\n  \"industry\": \"Technology\"\n}"
+								},
+								"url": {
+									"raw": "{{core_service_url}}/auth/register",
+									"host": [
+										"{{core_service_url}}"
+									],
+									"path": [
+										"auth",
+										"register"
+									]
+								}
+							}
+						},
+						{
+							"name": "Login User",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.response.code === 200) {",
+											"    const response = pm.response.json();",
+											"    pm.collectionVariables.set('auth_token', response.data.token);",
+											"    pm.collectionVariables.set('user_id', response.data.user.id);",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"password123\"\n}"
+								},
+								"url": {
+									"raw": "{{core_service_url}}/auth/login",
+									"host": [
+										"{{core_service_url}}"
+									],
+									"path": [
+										"auth",
+										"login"
+									]
+								}
+							}
+						},
+						{
+							"name": "Get Profile",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{core_service_url}}/auth/profile",
+									"host": [
+										"{{core_service_url}}"
+									],
+									"path": [
+										"auth",
+										"profile"
+									]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Users",
+					"item": [
+						{
+							"name": "Get All Users",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{core_service_url}}/users?page=1&limit=10",
+									"host": [
+										"{{core_service_url}}"
+									],
+									"path": [
+										"users"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": "10"
+										},
+										{
+											"key": "industry",
+											"value": "Technology",
+											"disabled": true
+										},
+										{
+											"key": "location",
+											"value": "San Francisco",
+											"disabled": true
+										},
+										{
+											"key": "search",
+											"value": "John",
+											"disabled": true
+										}
+									]
+								}
+							}
+						},
+						{
+							"name": "Get User by ID",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{core_service_url}}/users/{{user_id}}",
+									"host": [
+										"{{core_service_url}}"
+									],
+									"path": [
+										"users",
+										"{{user_id}}"
+									]
+								}
+							}
+						},
+						{
+							"name": "Update User",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"headline\": \"Senior Software Engineer at TechCorp\",\n  \"summary\": \"Senior software engineer with 7+ years in full-stack development and team leadership.\",\n  \"location\": \"San Francisco, CA\",\n  \"industry\": \"Technology\"\n}"
+								},
+								"url": {
+									"raw": "{{core_service_url}}/users/{{user_id}}",
+									"host": [
+										"{{core_service_url}}"
+									],
+									"path": [
+										"users",
+										"{{user_id}}"
+									]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Posts",
+					"item": [
+						{
+							"name": "Create Post",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.response.code === 201) {",
+											"    const response = pm.response.json();",
+											"    pm.collectionVariables.set('post_id', response.data.post.id);",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"content\": \"Excited to share my experience working on microservices architecture! Building scalable systems with Node.js and Docker has been an amazing journey. #TechLife #Microservices #NodeJS\",\n  \"visibility\": \"public\"\n}"
+								},
+								"url": {
+									"raw": "{{core_service_url}}/posts",
+									"host": [
+										"{{core_service_url}}"
+									],
+									"path": [
+										"posts"
+									]
+								}
+							}
+						},
+						{
+							"name": "Get All Posts",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{core_service_url}}/posts?page=1&limit=10",
+									"host": [
+										"{{core_service_url}}"
+									],
+									"path": [
+										"posts"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": "10"
+										},
+										{
+											"key": "user_id",
+											"value": "{{user_id}}",
+											"disabled": true
+										},
+										{
+											"key": "visibility",
+											"value": "public",
+											"disabled": true
+										}
+									]
+								}
+							}
+						},
+						{
+							"name": "Get Post by ID",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{core_service_url}}/posts/{{post_id}}",
+									"host": [
+										"{{core_service_url}}"
+									],
+									"path": [
+										"posts",
+										"{{post_id}}"
+									]
+								}
+							}
+						},
+						{
+							"name": "Like Post",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{core_service_url}}/posts/{{post_id}}/like",
+									"host": [
+										"{{core_service_url}}"
+									],
+									"path": [
+										"posts",
+										"{{post_id}}",
+										"like"
+									]
+								}
+							}
+						},
+						{
+							"name": "Update Post",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"content\": \"Updated: Excited to share my experience working on microservices architecture! Building scalable systems with Node.js, Docker, and Kubernetes has been an amazing journey. #TechLife #Microservices #NodeJS #Kubernetes\",\n  \"visibility\": \"public\"\n}"
+								},
+								"url": {
+									"raw": "{{core_service_url}}/posts/{{post_id}}",
+									"host": [
+										"{{core_service_url}}"
+									],
+									"path": [
+										"posts",
+										"{{post_id}}"
+									]
+								}
+							}
+						},
+						{
+							"name": "Delete Post",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{core_service_url}}/posts/{{post_id}}",
+									"host": [
+										"{{core_service_url}}"
+									],
+									"path": [
+										"posts",
+										"{{post_id}}"
+									]
+								}
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "People Graph Service",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{graph_service_url}}/health",
+							"host": [
+								"{{graph_service_url}}"
+							],
+							"path": [
+								"health"
+							]
+						}
+					}
+				},
+				{
+					"name": "Graph Operations",
+					"item": [
+						{
+							"name": "Sync User to Graph",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"id\": 1,\n  \"email\": \"john.doe@example.com\",\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\",\n  \"headline\": \"Software Engineer at TechCorp\",\n  \"location\": \"San Francisco, CA\",\n  \"industry\": \"Technology\"\n}"
+								},
+								"url": {
+									"raw": "{{graph_service_url}}/graph/sync/user",
+									"host": [
+										"{{graph_service_url}}"
+									],
+									"path": [
+										"graph",
+										"sync",
+										"user"
+									]
+								}
+							}
+						},
+						{
+							"name": "Sync Company to Graph",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"id\": 1,\n  \"name\": \"TechCorp\",\n  \"description\": \"Leading technology company focused on innovation\",\n  \"industry\": \"Technology\",\n  \"location\": \"San Francisco, CA\"\n}"
+								},
+								"url": {
+									"raw": "{{graph_service_url}}/graph/sync/company",
+									"host": [
+										"{{graph_service_url}}"
+									],
+									"path": [
+										"graph",
+										"sync",
+										"company"
+									]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Connections",
+					"item": [
+						{
+							"name": "Connect Users",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{graph_service_url}}/graph/connect/{{user_id}}/2",
+									"host": [
+										"{{graph_service_url}}"
+									],
+									"path": [
+										"graph",
+										"connect",
+										"{{user_id}}",
+										"2"
+									]
+								}
+							}
+						},
+						{
+							"name": "Get Connection Suggestions",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{graph_service_url}}/graph/suggestions/{{user_id}}?limit=5",
+									"host": [
+										"{{graph_service_url}}"
+									],
+									"path": [
+										"graph",
+										"suggestions",
+										"{{user_id}}"
+									],
+									"query": [
+										{
+											"key": "limit",
+											"value": "5"
+										}
+									]
+								}
+							}
+						},
+						{
+							"name": "Find Shortest Path",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{graph_service_url}}/graph/shortest-path?from={{user_id}}&to=3",
+									"host": [
+										"{{graph_service_url}}"
+									],
+									"path": [
+										"graph",
+										"shortest-path"
+									],
+									"query": [
+										{
+											"key": "from",
+											"value": "{{user_id}}"
+										},
+										{
+											"key": "to",
+											"value": "3"
+										}
+									]
+								}
+							}
+						},
+						{
+							"name": "People You May Know",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{graph_service_url}}/graph/people-you-may-know?limit=10",
+									"host": [
+										"{{graph_service_url}}"
+									],
+									"path": [
+										"graph",
+										"people-you-may-know"
+									],
+									"query": [
+										{
+											"key": "limit",
+											"value": "10"
+										}
+									]
+								}
+							}
+						},
+						{
+							"name": "Get Connection Count",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{graph_service_url}}/graph/connections/count/{{user_id}}",
+									"host": [
+										"{{graph_service_url}}"
+									],
+									"path": [
+										"graph",
+										"connections",
+										"count",
+										"{{user_id}}"
+									]
+								}
+							}
+						},
+						{
+							"name": "Get Mutual Connections",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{graph_service_url}}/graph/connections/mutual/2",
+									"host": [
+										"{{graph_service_url}}"
+									],
+									"path": [
+										"graph",
+										"connections",
+										"mutual",
+										"2"
+									]
+								}
+							}
+						},
+						{
+							"name": "Get Affinity Ranking",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{graph_service_url}}/graph/affinity-ranking?limit=20",
+									"host": [
+										"{{graph_service_url}}"
+									],
+									"path": [
+										"graph",
+										"affinity-ranking"
+									],
+									"query": [
+										{
+											"key": "limit",
+											"value": "20"
+										}
+									]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Skills & Endorsements",
+					"item": [
+						{
+							"name": "Endorse Skill",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"skillName\": \"JavaScript\"\n}"
+								},
+								"url": {
+									"raw": "{{graph_service_url}}/graph/endorse/2/1",
+									"host": [
+										"{{graph_service_url}}"
+									],
+									"path": [
+										"graph",
+										"endorse",
+										"2",
+										"1"
+									]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Company Operations",
+					"item": [
+						{
+							"name": "Follow Company",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{graph_service_url}}/graph/follow/company/1",
+									"host": [
+										"{{graph_service_url}}"
+									],
+									"path": [
+										"graph",
+										"follow",
+										"company",
+										"1"
+									]
+								}
+							}
+						},
+						{
+							"name": "Add Work Experience",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"companyId\": 1,\n  \"position\": \"Senior Software Engineer\",\n  \"startDate\": \"2020-01-15\",\n  \"endDate\": null\n}"
+								},
+								"url": {
+									"raw": "{{graph_service_url}}/graph/work-experience",
+									"host": [
+										"{{graph_service_url}}"
+									],
+									"path": [
+										"graph",
+										"work-experience"
+									]
+								}
+							}
+						}
+					]
+				}
+			]
+		}
+	]
+}
